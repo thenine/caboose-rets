@@ -174,6 +174,13 @@ namespace :caboose_rets do
     end
   end
 
+  task :street_addresses => :environment do
+    CabooseRets::Property.where(:status => "Active").order(:id).all.each do |p|
+      p.street_address = p.full_address
+      p.save
+    end
+  end
+
   desc "fix images"
   task :fix_images => :environment do 
     props = CabooseRets::Property.where(:status => "Active").where("photo_count is not null and photo_count != ?", "0").order('id desc').all

@@ -46,6 +46,10 @@ module CabooseRets
         end
       end
 
+      filtered_address = params[:street_address_like].blank? ? nil : params[:street_address_like].downcase.strip.gsub(".","").gsub(/ blvd$/," boulevard").gsub(/ pkwy$/,"parkway").gsub(/ st$/,"street").gsub(/ dr$/,"drive").gsub(/ ave$/,"avenue").gsub(/ ct$/,"court").gsub(/ cir$/,"circle").gsub(/ rd$/,"road")
+
+      params[:street_address_like] = filtered_address
+
       where2 = search_options.blank? ? "(id is not null)" : ("(" + search_options.join(' OR ') + ")")
 
       sortby = @site && @site.id == 558 ? "original_entry_timestamp" : CabooseRets::default_property_sort
@@ -88,6 +92,7 @@ module CabooseRets
         'street_number_like'       => '',
         'postal_code'              => '',
         'postal_code_like'         => '',
+        'street_address_like'      => '',
         'status'                   => 'Active'
       },{
         'model'           => 'CabooseRets::Property',

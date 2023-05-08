@@ -300,7 +300,8 @@ class CabooseRets::Schema < Caboose::Utilities::Schema
         [ :yr_blt_source                        , :text],
         [ :zoning                               , :text],
         [ :zoning_northport                     , :text],
-        [ :zoning_tusc                          , :text]
+        [ :zoning_tusc                          , :text],
+        [ :street_address                          , :text]
       ], 
       CabooseRets::Log => [
         [ :class_name, :string ],

@@ -262,6 +262,8 @@ class CabooseRets::Property <ActiveRecord::Base
         # self.zoning_northport                 = data['ZoningNorthPort']
         # self.zoning_tusc                      = data['ZoningTusc']
 
+        self.street_address = self.full_address
+
 
         if !old_status.blank? && old_status != self.status # status was changed
             CabooseRets::Notification.delay(:queue => "rets").property_status_changed(self, old_status)
