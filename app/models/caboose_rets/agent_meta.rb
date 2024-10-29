@@ -10,15 +10,4 @@ class CabooseRets::AgentMeta < ActiveRecord::Base
       :large => '900x900>'
     }
   do_not_validate_attachment_file_type :image
-  # attr_accessible :id,
-  #   :la_code         ,
-  #   :hide            ,
-  #   :bio             ,
-  #   :contact_info    ,
-  #   :assistant_to    ,
-  #   :designation     ,
-  #   :image_location  ,
-  #   :accepts_listings,
-  #   :weight
-
 end
