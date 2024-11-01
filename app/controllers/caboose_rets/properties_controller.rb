@@ -137,6 +137,9 @@ module CabooseRets
     # @route GET /properties/:mls_number/details
     def details
       @property = Property.where(:mls_number => params[:mls_number], :status => 'Active').first
+
+      render :file => "caboose/extras/error404", :layout => "caboose/application", :status => 404 and return if @property.nil?
+      
       @agent = Agent.where(:matrix_unique_id => @property.list_agent_mui).where("office_mls_id ILIKE ?", @site.rets_office_id).first if @property
       @saved = logged_in? && SavedProperty.where(:user_id => logged_in_user.id, :mls_number => params[:mls_number]).exists?
       price_where = "list_price is not null and (list_price >= ? AND list_price <= ?)"
@@ -146,9 +149,10 @@ module CabooseRets
       beds_min = @property.beds_total - 2 if @property && @property.beds_total
       beds_max = @property.beds_total + 2 if @property && @property.beds_total
 
-      @related = Property.near("#{@property.latitude}, #{@property.longitude}", 50).where(:property_type => @property.property_type, :status => 'Active', :property_subtype => @property.property_subtype).where(price_where,price_min,price_max).where(beds_where,beds_min,beds_max).where("mls_number != ?",@property.mls_number).order('distance asc').limit(3) if @property
-
-      render :file => "caboose/extras/error404", :layout => "caboose/application", :status => 404 and return if @property.nil?
+      #Caboose.log("finding related properties")
+      @related = @property.latitude.blank? ? [] : Property.near([@property.latitude, @property.longitude], 50, units: :mi).where(:property_type => @property.property_type, :status => 'Active', :property_subtype => @property.property_subtype).where(price_where,price_min,price_max).where(beds_where,beds_min,beds_max).where.not(:mls_number => @property.mls_number).limit(3)
+      @related_count = @related.to_a.size
+      #Caboose.log(@related.inspect)
 
       @block_options = {
         :mls_number => params[:mls_number],
