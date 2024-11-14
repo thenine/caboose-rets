@@ -10,6 +10,5 @@ class CabooseRets::OfficeMeta < ActiveRecord::Base
       :large => '200x300>'
     }
   do_not_validate_attachment_file_type :image
-  # attr_accessible :id, :lo_code
     
 end

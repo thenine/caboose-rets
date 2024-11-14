@@ -12,117 +12,10 @@ namespace :caboose_rets do
 
   desc "Do a simple search"
   task :simple_search => :environment do
-    type = ['p','a','o','oh']
-    @@config = {
-      'url'                 => nil,
-      'username'            => nil,
-      'password'            => nil,
-      'temp_path'           => nil,
-      'log_file'            => nil,
-      'media_base_url'      => nil
-    }
-    config = YAML::load(File.open("#{Rails.root}/config/rets_importer.yml"))    
-    config = config[Rails.env]
-    config.each { |key,val| @@config[key] = val }
-    client = RETS::Client.login(
-      :url      => config['url'],
-      :username => config['username'],
-      :password => config['password']
-    )
-    type.each do |t|
-      if t == 'p'
-        params = {
-          :search_type => 'Property',
-          :class       => 'Property',
-          :query       => "(MlsStatus=Active)AND(OriginatingSystemName=WESTAL)",
-          :limit       => 1,
-          :timeout     => -1
-        }
-      elsif t == 'a'      
-        params = {
-          :search_type => 'Member',
-          :class       => 'Member',
-          :query       => "(MemberStatus=Active)AND(OriginatingSystemName=WESTAL)",
-          :limit       => 1,
-          :timeout     => -1
-        }
-      elsif t == 'o'                
-        params = {
-          :search_type => 'Office',
-          :class       => 'Office',
-          :query       => "(OfficeStatus=Active)AND(OriginatingSystemName=WESTAL)",
-          :limit       => 1,
-          :timeout     => -1
-        }
-      elsif t == 'oh'       
-        params = {
-          :search_type => 'OpenHouse',
-          :class       => 'OpenHouse',
-          :query       => "(OpenHouseKeyNumeric=0+)AND(OriginatingSystemName=WESTAL)",
-          :limit       => 1,
-          :timeout     => -1
-        }
-      end
-      client.search(params) do |data|
-        ap data
-      end
-    end
-  end
-
-  desc "Inspect object"
-  task :inspect, [:search_type, :query] => :environment do |t, args|
-    @@config = {
-      'url'                 => nil,
-      'username'            => nil,
-      'password'            => nil,
-      'temp_path'           => nil,
-      'log_file'            => nil,
-      'media_base_url'      => nil
-    }
-    config = YAML::load(File.open("#{Rails.root}/config/rets_importer.yml"))    
-    config = config[Rails.env]
-    config.each { |key,val| @@config[key] = val }
-    client = RETS::Client.login(
-      :url      => config['url'],
-      :username => config['username'],
-      :password => config['password']
-    )
-    if args.search_type == 'Property'
-      params = {
-        :search_type => 'Property',
-        :class       => 'Property',
-        :query       => "(ListingId=#{args.query})",
-        :limit       => 1,
-        :timeout     => -1
-      }
-    elsif args.search_type == 'Agent'    
-      params = {
-        :search_type => 'Member',
-        :class       => 'Member',
-        :query       => "(MemberMlsId=#{args.query})",
-        :limit       => 1,
-        :timeout     => -1
-      }
-    elsif args.search_type == 'Office'             
-      params = {
-        :search_type => 'Office',
-        :class       => 'Office',
-        :query       => "(OfficeMlsId=#{args.query})",
-        :limit       => 1,
-        :timeout     => -1
-      }
-    elsif args.search_type == 'OpenHouse'    
-      params = {
-        :search_type => 'OpenHouse',
-        :class       => 'OpenHouse',
-        :query       => "(ListingId=#{args.query})",
-        :limit       => 1,
-        :timeout     => -1
-      }
-    end
-    client.search(params) do |data|
-      ap data
-    end
+    mls_number = "161533"
+    r = CabooseRets::RetsImporter.resource('Property', "ListingId eq '#{mls_number}'")
+    data = r ? r[0] : nil
+    puts data.inspect
   end
 
   desc "Import Image"
@@ -170,7 +63,8 @@ namespace :caboose_rets do
     props = CabooseRets::Property.where("latitude is null or longitude is null").order('id desc').all
     props.each do |p|
       puts "Updating coords for property #{p.mls_number}"
-      CabooseRets::RetsImporter.delay(:queue => 'rets', :priority => 15).update_coords(p)
+      CabooseRets::RetsImporter.delay(:queue => 'rets', :priority => 4).import_properties(p.mls_number, false)
+      #CabooseRets::RetsImporter.delay(:queue => 'rets', :priority => 15).update_coords(p)
     end
   end
 
