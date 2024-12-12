@@ -153,7 +153,7 @@ module CabooseRets
       meta.image = params[:image]
       meta.save
       resp.attributes['image'] = { 'value' => meta.image.url(:thumb) }    
-      render :text => resp.to_json
+      render :json => resp
     end
 
   end
