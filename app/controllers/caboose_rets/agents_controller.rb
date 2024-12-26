@@ -147,12 +147,13 @@ module CabooseRets
     # @route POST /admin/agents/:id/image
     def admin_update_image
       render :json => false and return unless user_is_allowed_to 'edit', 'rets_agents'    
-      resp = Caboose::StdClass.new({ 'attributes' => {} })
+      resp = Caboose::StdClass.new
       agent = Agent.find(params[:id])
       meta = agent.meta ? agent.meta : AgentMeta.create(:la_code => agent.matrix_unique_id) if agent
       meta.image = params[:image]
       meta.save
-      resp.attributes['image'] = { 'value' => meta.image.url(:thumb) }    
+      resp.success = true 
+      resp.attributes = { 'image' => { 'value' => meta.image.url(:thumb) }}
       render :json => resp
     end
 
