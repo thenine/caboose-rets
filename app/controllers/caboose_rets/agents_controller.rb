@@ -11,9 +11,23 @@ module CabooseRets
     # @route GET /real-estate/agents/:slug
     # @route GET /agents/:mls_id
     def details
-      @agent = Agent.where(:mls_id => params[:mls_id]).where("office_mls_id ILIKE ?", @site.rets_office_id).first if !params[:mls_id].blank?
-      @agent = Agent.where(:slug => params[:slug]).where("office_mls_id ILIKE ?", @site.rets_office_id).first if !params[:slug].blank?
-      @listings = Property.where("list_agent_mls_id ILIKE ? OR co_list_agent_mls_id ILIKE ?", @agent.mls_id, @agent.mls_id).where(:status => 'Active').order('list_price desc').all
+      rets_office_id = @site.rets_office_id ? @site.rets_office_id.downcase : nil
+      @agent = Agent
+                 .where(mls_id: params[:mls_id].to_s).or(Agent.where(slug: params[:slug].to_s))
+                 .where("LOWER(office_mls_id) = ?", rets_office_id)
+                 .first
+
+      if @agent.nil? || (@agent.mls_id.blank? && @agent.slug.blank?)
+        render file: "caboose/extras/error404", layout: "caboose/application", status: 404
+        return
+      end
+
+      agent_mls_id = @agent.mls_id ? @agent.mls_id.downcase : nil
+      @listings = Property
+                    .where("LOWER(list_agent_mls_id) = ? OR LOWER(co_list_agent_mls_id) = ?", agent_mls_id, agent_mls_id)
+                    .where(status: 'Active')
+                    .order('list_price desc')
+                    .all
     end 
 
     # @route GET /real-estate/agents/:slug/contact
