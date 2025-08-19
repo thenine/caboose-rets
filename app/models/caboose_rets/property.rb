@@ -1,6 +1,11 @@
 class CabooseRets::Property <ActiveRecord::Base
     self.table_name = "rets_properties"
     # attr_accessible :id, :matrix_unique_id, :mls_number, :alternate_link
+    scope :active, -> { where(status: 'Active') }
+    scope :by_agent_mls_id,
+          -> (agent_mls_id) {
+            where("LOWER(list_agent_mls_id) = ? OR LOWER(co_list_agent_mls_id) = ?", agent_mls_id.downcase, agent_mls_id.downcase)
+          }
 
     geocoded_by :full_address
 
