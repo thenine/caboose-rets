@@ -5,6 +5,11 @@ class CabooseRets::Agent < ActiveRecord::Base
   has_many :properties
   # attr_accessible :id, :agent_number, :matrix_unique_id, :sort_order, :mls_id, :last_updated
   after_initialize :fix_name
+
+  scope :by_mls_id, ->(mls_id) { where(mls_id:) }
+  scope :by_slug, ->(slug) { where(slug:) }
+  scope :by_office_mls_id,
+        ->(office_mls_id) { where("LOWER(office_mls_id) = ?", office_mls_id) }
   
   def image
     return nil if self.meta.nil?
