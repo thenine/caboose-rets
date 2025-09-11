@@ -48,7 +48,7 @@ module CabooseRets
 
     # @route GET /admin/open-houses/refresh
     def admin_refresh                  
-      RetsImporter.update_helper('OpenHouse', DateTime.parse(7.days.ago.strftime('%F %T')))
+      RetsImporter.delay(:priority => 10, :queue => 'rets').update_helper('OpenHouse', DateTime.parse(7.days.ago.strftime('%F %T')))
       resp = Caboose::StdClass.new
       resp.success = "New open houses are being imported!"
       render :json => resp
