@@ -34,7 +34,7 @@ module CabooseRets
     # GET /admin/offices/:mls_number/refresh
     def admin_refresh
       office = Office.find(params[:id])        
-      RetsImporter.import('Office', "(Matrix_Unique_ID=#{office.matrix_unique_id})")
+      RetsImporter.delay(:priority => 10, :queue => 'rets').import('Office', "(Matrix_Unique_ID=#{office.matrix_unique_id})")
       render :json => Caboose::StdClass.new({ 'success' => "The office's info has been updated from MLS." })                
     end
   

@@ -31,7 +31,13 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
         @@config['client_id'],
         @@config['client_secret'],
         site: @@config['endpoint'],
-        token_url: @@config['token_endpoint']
+        token_url: @@config['token_endpoint'],
+        connection_opts: {
+          request: {
+            open_timeout: 3,
+            timeout: 5
+          },
+        },
       )
     end
     return @@rets_client
@@ -77,6 +83,8 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
     else
       return nil
     end
+  rescue Faraday::ConnectionFailed, Faraday::TimeoutError
+    nil
   end
 
   def self.meta(class_type)
