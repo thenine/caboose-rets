@@ -5,7 +5,11 @@ module CabooseRets
     # @route GET /real-estate/agents
     # @route GET /agents
     def index
-      @agents = Agent.where("office_mls_id ILIKE ?",@site.rets_office_id).order(:sort_order).reject{ |a| (a.meta && a.meta.hide == true) }
+      @agents = Agent
+                 .left_joins(:meta)
+                 .where("office_mls_id ILIKE ?", @site.rets_office_id)
+                 .merge(AgentMeta.visible)
+                 .order(:sort_order)
     end
 
     # @route GET /real-estate/agents/:slug
@@ -108,7 +112,7 @@ module CabooseRets
     def admin_edit_sort
       return unless user_is_allowed_to 'edit', 'rets_agents'
       @agents = Agent.where("office_mls_id ILIKE ?", @site.rets_office_id).order(:sort_order).all
-      render :layout => 'caboose/admin'  
+      render :layout => 'caboose/admin'
     end
 
     # @route PUT /admin/agents/update-sort
