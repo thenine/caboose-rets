@@ -54,8 +54,8 @@
 			<h4 class="section-title">Quick Facts</h4>
 			<address>
 	      <% if !@property.unit_number.nil? && @property.unit_number.strip.length > 0 %>Unit <%= @property.unit_number %>, <% end %>
-	      <%= @property.street_number %> <%= @property.street_name.titleize %><br />
-	      <%= @property.city.titleize %>, <%= @property.state_or_province %> <%= @property.postal_code %>
+	      <%= @property.street_number %> <%= @property.street_name&.titleize %><br />
+	      <%= @property.city&.titleize %>, <%= @property.state_or_province %> <%= @property.postal_code %>
 	    </address>
 	    <p class="current-price">
 	    	<%= number_to_currency(@property.list_price, :precision => 0) %>
@@ -68,19 +68,19 @@
 		<section>
 			<h4 class="section-title">Directions</h4>
 			<% if false && @property.street_number %>
-				<div class="property-map" id="map-<%= @property.id %>" data-address="<%= @property.street_number %> <%= @property.street_name.titleize %>"></div>
+				<div class="property-map" id="map-<%= @property.id %>" data-address="<%= @property.street_number %> <%= @property.street_name&.titleize %>"></div>
 			<% end %>
 	  	<p class="directions"><%= @property.directions %></p>
 		</section>
 	  <section>
 	  	<h4 class="section-title">Neighborhood Information</h4>
 		  <ul>
-		    <li><strong>Area</strong>: <%= @property.area.titleize %></li>
-		    <% if @property.subdivision %><li><strong>Subdivision</strong>: <%= @property.subdivision.titleize %></li><% end %>
-		    <% if @property.elementary_school %><li><strong>Elementary School</strong>: <%= @property.elementary_school.titleize %></li><% end %>
-		    <% if @property.middle_school %><li><strong>Middle School</strong>: <%= @property.middle_school.titleize %></li><% end %>
-		    <% if @property.high_school %><li><strong>High School</strong>: <%= @property.high_school.titleize %></li><% end %>
-		    <li><strong>County</strong>: <%= @property.county_or_parish.titleize %></li>	
+		    <li><strong>Area</strong>: <%= @property.area&.titleize %></li>
+		    <% if @property.subdivision %><li><strong>Subdivision</strong>: <%= @property.subdivision&.titleize %></li><% end %>
+		    <% if @property.elementary_school %><li><strong>Elementary School</strong>: <%= @property.elementary_school&.titleize %></li><% end %>
+		    <% if @property.middle_school %><li><strong>Middle School</strong>: <%= @property.middle_school&.titleize %></li><% end %>
+		    <% if @property.high_school %><li><strong>High School</strong>: <%= @property.high_school&.titleize %></li><% end %>
+		    <li><strong>County</strong>: <%= @property.county_or_parish&.titleize %></li>	
 		  </ul>
 	  </section>
 	  <% page_ids = Caboose::Page.where(:site_id => @site.id).pluck(:id).to_s.gsub("[","").gsub("]","") %>
