@@ -58,7 +58,7 @@ class CabooseRets::SearchOption < ActiveRecord::Base
         end
       end
     else
-      q = ["select distinct(#{field}) from rets_properties where status = ? and property_type = ?", 'Active', 'Residential', 'Land']
+      q = ["select distinct(#{field}) from rets_properties where status = ? and (property_type = ? OR property_type = ?)", 'Active', 'Residential', 'Land']
       rows = ActiveRecord::Base.connection.select_rows(ActiveRecord::Base.send(:sanitize_sql_array, q))
       rows.each do |row|
         val = row[0].blank? ? nil : row[0].titleize.strip
