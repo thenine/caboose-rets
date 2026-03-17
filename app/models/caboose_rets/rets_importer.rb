@@ -44,8 +44,12 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
   end
 
   def self.access
-    @@rets_access = self.client.client_credentials.get_token
+    if @@rets_access.nil? || @@rets_access.expired?
+      @@rets_access = self.client.client_credentials.get_token
+    end
+    @@rets_access
   end
+
 
   def self.resource(resource_name, query, per_page = 100, count = false, select_column = nil, page_number = 1)
 
