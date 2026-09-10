@@ -170,6 +170,7 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
       when 'Media'     then m.where(:media_id => data['MediaObjectID']      ).exists? ? m.where(:media_id => data['MediaObjectID']      ).first : m.create(:media_id => data['MediaObjectID']      )
     end
     self.log "Found matching object ID #{obj.id}"
+    obj.verify_meta_exists if class_type == 'Member'
     return obj
   end
 
@@ -722,7 +723,7 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
 
   def self.unlock_task_if_last_updated(d)
     setting = Caboose::Setting.where(:name => 'rets_update_running').first
-    self.unlock_task if setting && d.in_time_zone.strftime("%FT%T%:z") == setting.value
+    self.unlock_task if setting && d.in_time_zone(CabooseRets::timezone).strftime("%FT%T%:z") == setting.value
   end
 
 end
