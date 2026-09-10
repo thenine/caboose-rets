@@ -164,6 +164,7 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
       when 'Media'     then m.where(:media_id => data['MediaObjectID']      ).exists? ? m.where(:media_id => data['MediaObjectID']      ).first : m.create(:media_id => data['MediaObjectID']      )
     end
     self.log "Found matching object ID #{obj.id}"
+    obj.verify_meta_exists if class_type == 'Member'
     return obj
   end
 
