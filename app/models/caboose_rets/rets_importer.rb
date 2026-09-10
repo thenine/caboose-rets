@@ -119,30 +119,36 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
     end
   end
 
+  # Returns true if the request to the RETS source succeeded (even if it
+  # matched zero records), false if the request itself failed (network
+  # error, API error, quota limit, etc). Callers that track "last synced"
+  # timestamps should only advance them when this returns true, otherwise
+  # a transient failure gets mistaken for an up-to-date, successful sync.
   def self.import(class_type, query)
     m = self.meta(class_type)
-    self.log3(class_type,nil,"Importing #{m.search_type}:#{class_type} with query #{query}...") 
+    self.log3(class_type,nil,"Importing #{m.search_type}:#{class_type} with query #{query}...")
     self.get_config if @@config.nil? || @@config['url'].nil?
 
     obj = nil
 
     begin
       results = self.resource(m.search_type, query)
-      if results && results.count > 0
-        results.each do |data|
-          obj = self.get_instance_with_id(class_type, data)
-          if obj.nil?
-            self.log3(class_type,nil,"Error: object is nil")
-            self.log3(class_type,nil,data.inspect)
-            next
-          end
-          obj.parse(data)
-          obj.save
+      return false if results.nil?
+      results.each do |data|
+        obj = self.get_instance_with_id(class_type, data)
+        if obj.nil?
+          self.log3(class_type,nil,"Error: object is nil")
+          self.log3(class_type,nil,data.inspect)
+          next
         end
+        obj.parse(data)
+        obj.save
       end
+      return true
     rescue
       self.log3(class_type,nil,"Import error for #{class_type}: #{query}")
       #self.log3(class_type,nil,err.message)
+      return false
     end
   end
 
@@ -265,9 +271,9 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
     a = CabooseRets::Agent.where(:mls_id => mls_id.to_s).first
     if a.nil?
       self.log3('Agent',mls_id,"Importing new Agent #{mls_id}...")
-      self.import('Member', "MemberMlsId eq '#{mls_id}'")
+      success = self.import('Member', "MemberMlsId eq '#{mls_id}'")
       a = CabooseRets::Agent.where(:mls_id => mls_id.to_s).first
-      if a
+      if a && success
         a.last_updated = DateTime.now
         a.save
       end
@@ -278,9 +284,13 @@ class CabooseRets::RetsImporter # < ActiveRecord::Base
       is_old = diff > 86400 # 24 hours
       if is_old
         self.log3('Agent',mls_id,"Updating existing Agent #{mls_id}...")
-        self.import('Member', "MemberMlsId eq '#{mls_id}'")
-        a.last_updated = DateTime.now
-        a.save
+        success = self.import('Member', "MemberMlsId eq '#{mls_id}'")
+        if success
+          a.last_updated = DateTime.now
+          a.save
+        else
+          self.log3('Agent',mls_id,"Import failed for Agent #{mls_id}, leaving last_updated alone so it's retried")
+        end
       else
         self.log3('Agent',mls_id,"Skipping importing Agent #{mls_id} because last_updated is today...")
       end
